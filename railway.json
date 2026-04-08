@@ -1,13 +1,12 @@
 {
   "$schema": "https://railway.app/schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "nixpacksPkgs": ["python3.14", "ffmpeg"]
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
   },
   "deploy": {
     "numReplicas": 1,
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10,
-    "startCommand": "python video_clipper_web.py"
+    "restartPolicyMaxRetries": 10
   }
 }
