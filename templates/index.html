@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Clipper - AI Powered</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            border-color: #7c3aed;
+        }
+        
+        input[type="text"]::placeholder {
+            color: #666;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #7c3aed, #00d4ff);
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .video-info {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+        }
+        
+        .video-info.show {
+            display: block;
+        }
+        
+        .video-info h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        
+        .video-meta {
+            display: flex;
+            gap: 20px;
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .thumbnail {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .peaks-section {
+            display: none;
+            margin-top: 25px;
+        }
+        
+        .peaks-section.show {
+            display: block;
+        }
+        
+        .peaks-title {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #00d4ff;
+        }
+        
+        .peaks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        
+        .peak-btn {
+            padding: 12px;
+            background: rgba(124, 58, 237, 0.3);
+            border: 2px solid rgba(124, 58, 237, 0.5);
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .peak-btn:hover {
+            background: rgba(124, 58, 237, 0.5);
+            border-color: #7c3aed;
+            transform: translateY(-2px);
+        }
+        
+        .peak-btn.selected {
+            background: linear-gradient(90deg, #7c3aed, #00d4ff);
+            border-color: transparent;
+        }
+        
+        .peak-score {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .controls {
+            display: none;
+            margin-top: 25px;
+        }
+        
+        .controls.show {
+            display: block;
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .control-group {
+            flex: 1;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .control-group input, .control-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .quality-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .quality-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quality-btn.active {
+            border-color: #00d4ff;
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+        }
+        
+        .action-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .progress-container.show {
+            display: block;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7c3aed, #00d4ff);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-text {
+            margin-top: 10px;
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loader.show {
+            display: block;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: #7c3aed;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: rgba(255, 59, 48, 0.2);
+            border: 1px solid rgba(255, 59, 48, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            color: #ff6b6b;
+            display: none;
+        }
+        
+        .error.show {
+            display: block;
+        }
+        
+        .success {
+            background: rgba(48, 209, 88, 0.2);
+            border: 1px solid rgba(48, 209, 88, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            color: #30d158;
+            display: none;
+        }
+        
+        .success.show {
+            display: block;
+        }
+        
+        .download-link {
+            color: #00d4ff;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        .how-to {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+        }
+        
+        .how-to h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+        }
+        
+        .how-to ol {
+            color: #888;
+            padding-left: 25px;
+        }
+        
+        .how-to li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Video Clipper</h1>
+        <p class="subtitle">AI-Powered Peak Moment Detection • URL se Clips Banaye</p>
+        
+        <div class="card">
+            <div class="input-group">
+                <input type="text" id="videoUrl" placeholder="Paste video URL (YouTube, Twitter, Instagram...)">
+                <button class="btn btn-primary" onclick="fetchVideoInfo()">Load Video</button>
+            </div>
+            
+            <div class="error" id="error"></div>
+            <div class="success" id="success"></div>
+            
+            <div class="loader" id="loader">
+                <div class="spinner"></div>
+                <p>Loading video...</p>
+            </div>
+            
+            <div class="video-info" id="videoInfo">
+                <h3 id="videoTitle">Video Title</h3>
+                <div class="video-meta">
+                    <span>⏱️ <span id="videoDuration">0:00</span></span>
+                    <span>👤 <span id="videoUploader">Unknown</span></span>
+                </div>
+                <img id="videoThumbnail" class="thumbnail" src="" alt="Thumbnail" style="display:none;">
+                
+                <div class="peaks-section" id="peaksSection">
+                    <p class="peaks-title">🔥 Peak Moments Detected (Audio Analysis)</p>
+                    <div class="peaks-grid" id="peaksGrid"></div>
+                    <button class="btn btn-secondary" style="margin-top: 15px;" onclick="analyzePeaks()">
+                        🔄 Re-analyze for More Peaks
+                    </button>
+                </div>
+                
+                <div class="controls" id="controls">
+                    <div class="quality-selector">
+                        <button class="quality-btn active" data-quality="720p">720p</button>
+                        <button class="quality-btn" data-quality="1080p">1080p</button>
+                        <button class="quality-btn" data-quality="480p">480p</button>
+                    </div>
+                    
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label>Start Time (seconds or 0:30 format)</label>
+                            <input type="text" id="startTime" placeholder="0:30">
+                        </div>
+                        <div class="control-group">
+                            <label>End Time (seconds or 0:30 format)</label>
+                            <input type="text" id="endTime" placeholder="1:00">
+                        </div>
+                    </div>
+                    
+                    <div class="action-row">
+                        <button class="btn btn-primary" onclick="createClip()">
+                            ✂️ Create Clip
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p class="progress-text" id="progressText">Downloading...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="how-to">
+            <h3>📖 How to Use</h3>
+            <ol>
+                <li>Paste any video URL (YouTube, Twitter, Instagram, etc.)</li>
+                <li>Click <strong>Load Video</strong> to fetch video info</li>
+                <li>Click on <strong>Peak Moments</strong> buttons to auto-fill timestamps</li>
+                <li>Or manually enter start/end time</li>
+                <li>Select quality and click <strong>Create Clip</strong></li>
+                <li>Download your clip when ready!</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        let currentVideo = null;
+        let peaks = [];
+        let selectedQuality = '720p';
+        
+        // Quality selector
+        document.querySelectorAll('.quality-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.quality-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedQuality = btn.dataset.quality;
+            });
+        });
+        
+        async function fetchVideoInfo() {
+            const url = document.getElementById('videoUrl').value.trim();
+            if (!url) {
+                showError('Please enter a video URL');
+                return;
+            }
+            
+            showLoader(true);
+            hideError();
+            hideSuccess();
+            
+            try {
+                const response = await fetch('/api/video/info', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+                
+                currentVideo = data;
+                
+                document.getElementById('videoTitle').textContent = data.title;
+                document.getElementById('videoDuration').textContent = data.duration_str;
+                document.getElementById('videoUploader').textContent = data.uploader;
+                
+                if (data.thumbnail) {
+                    document.getElementById('videoThumbnail').src = data.thumbnail;
+                    document.getElementById('videoThumbnail').style.display = 'block';
+                }
+                
+                document.getElementById('videoInfo').classList.add('show');
+                document.getElementById('controls').classList.add('show');
+                
+                // Auto analyze for peaks
+                analyzePeaks();
+                
+            } catch (e) {
+                showError('Failed to load video: ' + e.message);
+            } finally {
+                showLoader(false);
+            }
+        }
+        
+        async function analyzePeaks() {
+            const url = document.getElementById('videoUrl').value.trim();
+            if (!url) return;
+            
+            const peaksSection = document.getElementById('peaksSection');
+            const peaksGrid = document.getElementById('peaksGrid');
+            
+            peaksSection.classList.add('show');
+            peaksGrid.innerHTML = '<p style="color:#888;">Analyzing audio peaks...</p>';
+            
+            try {
+                const response = await fetch('/api/video/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    peaksGrid.innerHTML = '<p style="color:#ff6b6b;">Analysis failed - use manual timestamps</p>';
+                    return;
+                }
+                
+                peaks = data.peaks || [];
+                peaksGrid.innerHTML = '';
+                
+                if (peaks.length === 0) {
+                    peaksGrid.innerHTML = '<p style="color:#888;">No peaks detected - use manual timestamps</p>';
+                    return;
+                }
+                
+                peaks.forEach((peak, i) => {
+                    const btn = document.createElement('div');
+                    btn.className = 'peak-btn';
+                    btn.onclick = () => selectPeak(i);
+                    
+                    const mins = Math.floor(peak[0] / 60);
+                    const secs = Math.floor(peak[0] % 60);
+                    const score = Math.round(peak[1] * 100);
+                    
+                    btn.innerHTML = `
+                        <div>${mins}:${secs.toString().padStart(2, '0')}</div>
+                        <div class="peak-score">🔥 ${score}%</div>
+                    `;
+                    peaksGrid.appendChild(btn);
+                });
+                
+            } catch (e) {
+                peaksGrid.innerHTML = '<p style="color:#ff6b6b;">Analysis failed - use manual timestamps</p>';
+            }
+        }
+        
+        function selectPeak(index) {
+            const peak = peaks[index];
+            const start = peak[0];
+            const end = Math.min(start + 15, currentVideo.duration); // 15 sec clips
+            
+            document.getElementById('startTime').value = formatTime(start);
+            document.getElementById('endTime').value = formatTime(end);
+            
+            // Highlight selected
+            document.querySelectorAll('.peak-btn').forEach((btn, i) => {
+                btn.classList.toggle('selected', i === index);
+            });
+        }
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function parseTime(timeStr) {
+            if (!timeStr) return null;
+            timeStr = timeStr.trim();
+            
+            if (timeStr.includes(':')) {
+                const parts = timeStr.split(':');
+                if (parts.length === 2) {
+                    return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                } else if (parts.length === 3) {
+                    return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+                }
+            }
+            return parseInt(timeStr);
+        }
+        
+        async function createClip() {
+            const url = document.getElementById('videoUrl').value.trim();
+            const start = parseTime(document.getElementById('startTime').value);
+            const end = parseTime(document.getElementById('endTime').value);
+            
+            if (start === null || start < 0) {
+                showError('Please enter valid start time');
+                return;
+            }
+            
+            if (end !== null && end <= start) {
+                showError('End time must be greater than start time');
+                return;
+            }
+            
+            hideError();
+            hideSuccess();
+            
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            progressContainer.classList.add('show');
+            progressFill.style.width = '10%';
+            progressText.textContent = 'Starting download...';
+            
+            try {
+                progressFill.style.width = '30%';
+                progressText.textContent = 'Downloading video (this may take a while)...';
+                
+                const response = await fetch('/api/video/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, start, end, quality: selectedQuality })
+                });
+                
+                progressFill.style.width = '90%';
+                progressText.textContent = 'Processing...';
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+                
+                progressFill.style.width = '100%';
+                progressText.textContent = 'Done!';
+                
+                showSuccess(`✅ Clip ready! <a class="download-link" href="${data.download_url}" target="_blank">Click to Download</a>`);
+                
+            } catch (e) {
+                showError('Failed to create clip: ' + e.message);
+            } finally {
+                setTimeout(() => {
+                    progressContainer.classList.remove('show');
+                    progressFill.style.width = '0%';
+                }, 3000);
+            }
+        }
+        
+        function showError(msg) {
+            const el = document.getElementById('error');
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+        
+        function hideError() {
+            document.getElementById('error').classList.remove('show');
+        }
+        
+        function showSuccess(msg) {
+            const el = document.getElementById('success');
+            el.innerHTML = msg;
+            el.classList.add('show');
+        }
+        
+        function hideSuccess() {
+            document.getElementById('success').classList.remove('show');
+        }
+        
+        function showLoader(show) {
+            document.getElementById('loader').classList.toggle('show', show);
+        }
+    </script>
+</body>
+</html>
