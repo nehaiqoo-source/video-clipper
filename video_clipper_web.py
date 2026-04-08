@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import os, subprocess, json, tempfile, threading, re
 from flask import Flask, render_template, request, jsonify, send_file
-from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
@@ -18,13 +17,28 @@ def get_video_id(url):
         if m: return m.group(1)
     return None
 
+def safe_int(val, default=0):
+    try: return int(val)
+    except: return default
+
+def safe_float(val, default=0.0):
+    try: return float(val)
+    except: return default
+
 def get_video_info_invidious(video_id):
     for inst in INVIDIOUS:
         try:
             r = subprocess.run(["curl", "-s", "--max-time", "10", f"{inst}/api/v1/videos/{video_id}"], capture_output=True, text=True, timeout=15)
             if r.returncode == 0 and r.stdout:
                 d = json.loads(r.stdout)
-                return {'title': d.get('title','Unknown'), 'duration': int(d.get('lengthSeconds',0)), 'duration_str': d.get('formattedLength','0:00'), 'uploader': d.get('author','Unknown'), 'thumbnail': d.get('thumbnailUrl','')}
+                dur = d.get('lengthSeconds', 0)
+                return {
+                    'title': d.get('title','Unknown'),
+                    'duration': safe_int(dur),
+                    'duration_str': d.get('formattedLength','0:00'),
+                    'uploader': d.get('author','Unknown'),
+                    'thumbnail': d.get('thumbnailUrl','')
+                }
         except: continue
     return None
 
@@ -34,7 +48,16 @@ def get_video_info_ytdlp(url):
     if r.returncode != 0: return None
     parts = r.stdout.strip().split("|")
     if len(parts) < 2: return None
-    return {'title': parts[0] if parts[0]!="NA" else "Unknown", 'duration': int(float(parts[1])) if len(parts)>1 and parts[1]!="NA" else 0, 'uploader': parts[2] if len(parts)>2 and parts[2]!="NA" else "Unknown", 'thumbnail': parts[3] if len(parts)>3 and parts[3]!="NA" else ""}
+    title = parts[0] if parts[0] and parts[0] != "NA" else "Unknown"
+    dur_str = parts[1] if len(parts) > 1 and parts[1] and parts[1] != "NA" else "0"
+    uploader = parts[2] if len(parts) > 2 and parts[2] and parts[2] != "NA" else "Unknown"
+    thumbnail = parts[3] if len(parts) > 3 and parts[3] and parts[3] != "NA" else ""
+    return {
+        'title': title,
+        'duration': safe_int(safe_float(dur_str)),
+        'uploader': uploader,
+        'thumbnail': thumbnail
+    }
 
 def install_dependencies():
     try:
@@ -75,7 +98,7 @@ def analyze_video():
                     r = subprocess.run(["curl", "-s", "--max-time", "10", f"{inst}/api/v1/videos/{vid}"], capture_output=True, text=True, timeout=15)
                     if r.returncode == 0:
                         d = json.loads(r.stdout)
-                        duration = int(d.get('lengthSeconds', 60))
+                        duration = safe_int(d.get('lengthSeconds', 60))
                         break
                 except: continue
         return jsonify({'peaks': generate_smart_peaks(duration, 8)})
@@ -83,7 +106,7 @@ def analyze_video():
 
 def generate_smart_peaks(duration, num_peaks=8):
     peaks = []
-    seg = duration / (num_peaks + 1)
+    seg = max(duration / (num_peaks + 1), 1)
     for i in range(1, num_peaks + 1):
         ts = int(seg * i)
         mid = 1.0 - abs(i - (num_peaks / 2)) / (num_peaks / 2)
@@ -93,7 +116,7 @@ def generate_smart_peaks(duration, num_peaks=8):
 def detect_peak_moments(video_path, num_peaks=8, min_gap=5):
     try:
         r = subprocess.run(["ffmpeg", "-i", video_path, "-af", "volumedetect=peak=0.01", "-f", "null", "-"], capture_output=True, text=True, timeout=60)
-        mean_vol, max_vol = 0, 0
+        mean_vol, max_vol = 0.0, 0.0
         for l in r.stderr.split('\n'):
             if 'mean_volume' in l:
                 try: mean_vol = float(l.split('mean_volume:')[1].split('dB')[0].strip())
@@ -145,6 +168,7 @@ def download_video():
         data = request.json
         url, start, end = data.get('url'), data.get('start', 0), data.get('end')
         if not url: return jsonify({'error': 'URL required'}), 400
+        import time
         ts = int(time.time() * 1000)
         out_file = os.path.join(app.config['TEMP_DIR'], f"clip_{ts}.mp4")
         temp_video = os.path.join(app.config['TEMP_DIR'], f"full_{ts}.mp4")
