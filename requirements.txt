@@ -1,4 +1,4 @@
 Flask>=3.0.0
 Werkzeug>=3.0.0
-yt-dlp>=2026.3.17
+yt-dlp>=2024.0.0
 numpy>=1.26.0
