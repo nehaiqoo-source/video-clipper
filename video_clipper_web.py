@@ -22,7 +22,7 @@ os.makedirs(app.config['TEMP_DIR'], exist_ok=True)
 
 # yt-dlp path
 # Python 3.14 with yt-dlp 2026.3.17
-PYTHON = "/opt/homebrew/bin/python3.14"
+PYTHON = "python"
 
 def install_dependencies():
     """Check required tools"""
