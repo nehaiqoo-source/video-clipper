@@ -51,7 +51,7 @@ def get_video_info():
         
         cmd = [
             PYTHON, "-m", "yt_dlp",
-            "--no-playlist",
+            "--no-playlist", "--no-check-certificates", "--prefer-free-formats", "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "--print", "%(title)s|%(duration)s|%(uploader)s|%(thumbnail)s",
             "--skip-download",
             url
@@ -97,7 +97,7 @@ def analyze_video():
         # Get video duration without downloading
         cmd = [
             PYTHON, "-m", "yt_dlp",
-            "--no-playlist",
+            "--no-playlist", "--no-check-certificates", "--prefer-free-formats", "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "--print", "%(duration)s",
             "--skip-download",
             url
@@ -274,7 +274,7 @@ def download_video():
         cmd = [
             PYTHON, "-m", "yt_dlp",
             "-f", "best[ext=mp4]/best",
-            "--no-playlist",
+            "--no-playlist", "--no-check-certificates", "--prefer-free-formats", "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "-o", temp_video,
             url
         ]
